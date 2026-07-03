@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Check, CircleDot, Gauge, Lightbulb, Palette, Shield, Sparkles } from 'lucide-vue-next'
 import { useCarStore } from '@/app/stores/carStore'
-import type { CameraPreset, QualityLevel } from '@/features/car-viewer/types/car'
+import type { CameraPreset, QualityLevel, SceneStyle } from '@/features/car-viewer/types/car'
 
 const store = useCarStore()
 
@@ -112,7 +112,7 @@ const qualityOptions: Array<{ id: QualityLevel; label: string }> = [
     </section>
 
     <section class="panel-section">
-      <div class="section-title"><Lightbulb :size="16" /> 灯光 / 画质</div>
+      <div class="section-title"><Lightbulb :size="16" /> 灯光 / 场景</div>
       <div class="segmented">
         <button
           v-for="light in store.selectedCar.options.lightModes"
@@ -124,6 +124,11 @@ const qualityOptions: Array<{ id: QualityLevel; label: string }> = [
           {{ light.name }}
         </button>
       </div>
+      <select class="select-field" :value="store.sceneStyle" @change="store.updateConfiguration({ sceneStyle: ($event.target as HTMLSelectElement).value as SceneStyle })">
+        <option v-for="scene in store.sceneStyleOptions" :key="scene.id" :value="scene.id">
+          {{ scene.name }}
+        </option>
+      </select>
       <div class="segmented">
         <button
           v-for="quality in qualityOptions"

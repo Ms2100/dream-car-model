@@ -1,9 +1,18 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { cars, defaultCar } from '@/features/car-viewer/data/cars'
-import type { CameraPreset, CarConfigurationState, FocusPart, QualityLevel } from '@/features/car-viewer/types/car'
+import type { CameraPreset, CarConfigurationState, FocusPart, QualityLevel, SceneStyle, SceneStyleOption } from '@/features/car-viewer/types/car'
 
 const STORAGE_KEY = 'dream-car-model-config'
+
+export const sceneStyleOptions: SceneStyleOption[] = [
+  { id: 'studio', name: '专业影棚' },
+  { id: 'city-road', name: '城市马路' },
+  { id: 'beach', name: '海边沙滩' },
+  { id: 'grassland', name: '无垠草坪' },
+  { id: 'ruins', name: '城市废墟' },
+  { id: 'other', name: '夜色展台' },
+]
 
 /**
  * 车辆配置状态 by AI.Coding
@@ -20,6 +29,7 @@ export const useCarStore = defineStore('car-configurator', () => {
   const lightModeId = ref(initial.lightModeId)
   const cameraPreset = ref<CameraPreset>(initial.cameraPreset)
   const qualityLevel = ref<QualityLevel>(initial.qualityLevel)
+  const sceneStyle = ref<SceneStyle>(initial.sceneStyle)
   const loadingState = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const focusedPart = ref<FocusPart | null>(null)
   const doorsOpen = ref(false)
@@ -37,7 +47,7 @@ export const useCarStore = defineStore('car-configurator', () => {
    */
   function selectCar(carId: string) {
     const nextCar = cars.find((car) => car.id === carId)
-    if (!nextCar) return
+    if (!nextCar || nextCar.assetStatus === 'pending') return
     selectedCarId.value = nextCar.id
     bodyColorId.value = ensureOption(nextCar.options.bodyColors, bodyColorId.value)
     wheelId.value = ensureOption(nextCar.options.wheels, wheelId.value)
@@ -60,6 +70,7 @@ export const useCarStore = defineStore('car-configurator', () => {
     if (patch.lightModeId) lightModeId.value = patch.lightModeId
     if (patch.cameraPreset) cameraPreset.value = patch.cameraPreset
     if (patch.qualityLevel) qualityLevel.value = patch.qualityLevel
+    if (patch.sceneStyle) sceneStyle.value = patch.sceneStyle
     persistState()
   }
 
@@ -104,6 +115,7 @@ export const useCarStore = defineStore('car-configurator', () => {
       lights: lightModeId.value,
       camera: cameraPreset.value,
       quality: qualityLevel.value,
+      scene: sceneStyle.value,
     }
   }
 
@@ -126,6 +138,8 @@ export const useCarStore = defineStore('car-configurator', () => {
     if (isCameraPreset(nextCamera)) cameraPreset.value = nextCamera
     const nextQuality = asString(query.quality)
     if (isQualityLevel(nextQuality)) qualityLevel.value = nextQuality
+    const nextScene = asString(query.scene)
+    if (isSceneStyle(nextScene)) sceneStyle.value = nextScene
     persistState()
   }
 
@@ -147,6 +161,7 @@ export const useCarStore = defineStore('car-configurator', () => {
           lightModeId: lightModeId.value,
           cameraPreset: cameraPreset.value,
           qualityLevel: qualityLevel.value,
+          sceneStyle: sceneStyle.value,
         }),
       )
     } catch {
@@ -165,6 +180,8 @@ export const useCarStore = defineStore('car-configurator', () => {
     lightModeId,
     cameraPreset,
     qualityLevel,
+    sceneStyle,
+    sceneStyleOptions,
     loadingState,
     focusedPart,
     doorsOpen,
@@ -199,14 +216,25 @@ function loadInitialState(): CarConfigurationState {
     lightModeId: defaultCar.options.lightModes[1].id,
     cameraPreset: 'exterior',
     qualityLevel: 'auto',
+    sceneStyle: 'city-road',
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults
+    const merged = saved ? { ...defaults, ...JSON.parse(saved) } : defaults
+    if (!cars.some((car) => car.id === merged.carId && car.assetStatus !== 'pending')) merged.carId = defaultCar.id
+    return merged
   } catch {
     return defaults
   }
+}
+
+/**
+ * 场景风格校验 by AI.Coding
+ * 防止 URL 或 localStorage 写入不存在的场景 id。
+ */
+function isSceneStyle(value: string | null): value is SceneStyle {
+  return value === 'studio' || value === 'city-road' || value === 'beach' || value === 'grassland' || value === 'ruins' || value === 'other'
 }
 
 /**

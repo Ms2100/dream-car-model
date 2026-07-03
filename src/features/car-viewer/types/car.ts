@@ -42,6 +42,24 @@ export interface LightModeOption {
   intensity: number
 }
 
+export interface CarModelTransform {
+  scale: number
+  rotationY: number
+  offsetY: number
+}
+
+export interface CarVisualTuning {
+  stableWheelVisuals?: boolean
+  calibratedLampOverlays?: boolean
+}
+
+export interface CarAssetCredit {
+  title: string
+  author: string
+  license: string
+  source: string
+}
+
 export interface CarMaterialSlots {
   body: string[]
   glass: string[]
@@ -62,13 +80,26 @@ export interface CarOptions {
   lightModes: LightModeOption[]
 }
 
+export interface SceneStyleOption {
+  id: SceneStyle
+  name: string
+}
+
 export interface CarModelConfig {
   id: string
   brand: string
   name: string
   displayName: string
   modelUrl?: string
+  modelTransform?: CarModelTransform
+  visualTuning?: CarVisualTuning
+  modelCredit?: CarAssetCredit
+  engineSoundUrl?: string
+  engineSoundLabel?: string
+  soundCredit?: CarAssetCredit
+  assetStatus?: 'ready' | 'pending'
   previewTone: string
+  previewImage?: string
   hdriPreset: string
   stats: CarStats
   materialSlots: CarMaterialSlots
@@ -85,10 +116,13 @@ export interface CarConfigurationState {
   lightModeId: string
   cameraPreset: CameraPreset
   qualityLevel: QualityLevel
+  sceneStyle: SceneStyle
 }
 
 export type CameraPreset = 'exterior' | 'front' | 'side' | 'rear' | 'interior' | 'wheel'
 
 export type QualityLevel = 'auto' | 'high' | 'balanced' | 'mobile'
+
+export type SceneStyle = 'studio' | 'city-road' | 'beach' | 'grassland' | 'ruins' | 'other'
 
 export type FocusPart = 'body' | 'wheel' | 'light' | 'interior' | 'carbon'

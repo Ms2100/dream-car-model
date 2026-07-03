@@ -8,6 +8,7 @@ const canvasHost = ref<HTMLElement | null>(null)
 let engine: CarViewerEngine | null = null
 
 const snapshot = computed(() => ({
+  car: store.selectedCar,
   bodyColor: store.currentBodyColor,
   wheel: store.currentWheel,
   brakeCaliper: store.currentBrakeCaliper,
@@ -16,6 +17,7 @@ const snapshot = computed(() => ({
   lightMode: store.currentLightMode,
   cameraPreset: store.cameraPreset,
   qualityLevel: store.qualityLevel,
+  sceneStyle: store.sceneStyle,
   doorsOpen: store.doorsOpen,
 }))
 
